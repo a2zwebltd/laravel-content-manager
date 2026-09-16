@@ -40,3 +40,20 @@ it('reads tags from rows written under a legacy class name', function (): void {
 
     expect($post->load('tags')->tags->pluck('name')->all())->toBe(['Legacy tag']);
 });
+
+it('answers to the same alias when the host swaps in a subclass', function (): void {
+    config()->set('content-manager.models.blog_post', SubclassedPost::class);
+    config()->set('content-manager.morph_map', ['blog_post' => SubclassedPost::class]);
+
+    // Both classes have to resolve to 'blog_post', or the parent silently stops
+    // matching its own tag pivots.
+    expect((new SubclassedPost)->getMorphClass())->toBe('blog_post')
+        ->and((new BlogPost)->getMorphClass())->toBe('blog_post');
+
+    $post = SubclassedPost::factory()->published()->create();
+    $post->tags()->attach(Tag::factory()->create(['name' => 'Shared']));
+
+    expect(BlogPost::query()->find($post->id)->tags->pluck('name')->all())->toBe(['Shared']);
+});
+
+class SubclassedPost extends BlogPost {}

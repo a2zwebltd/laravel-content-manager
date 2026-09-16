@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace A2ZWeb\ContentManager\Models;
 
 use A2ZWeb\ContentManager\Concerns\FiresContentEvents;
+use A2ZWeb\ContentManager\Concerns\ResolvesMorphAlias;
 use A2ZWeb\ContentManager\Database\Factories\PageFactory;
 use A2ZWeb\ContentManager\Support\Markdown;
 use A2ZWeb\ContentManager\Support\Tables;
@@ -16,9 +17,10 @@ use Illuminate\Database\Eloquent\Model;
 class Page extends Model
 {
     use FiresContentEvents;
-
     /** @use HasFactory<PageFactory> */
     use HasFactory;
+
+    use ResolvesMorphAlias;
 
     protected $fillable = [
         'slug',

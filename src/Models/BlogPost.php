@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace A2ZWeb\ContentManager\Models;
 
 use A2ZWeb\ContentManager\Concerns\FiresContentEvents;
+use A2ZWeb\ContentManager\Concerns\ResolvesMorphAlias;
 use A2ZWeb\ContentManager\Database\Factories\BlogPostFactory;
 use A2ZWeb\ContentManager\Support\Markdown;
 use A2ZWeb\ContentManager\Support\Models;
@@ -25,11 +26,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class BlogPost extends Model implements HasMedia
 {
     use FiresContentEvents;
-
     /** @use HasFactory<BlogPostFactory> */
     use HasFactory;
 
     use InteractsWithMedia;
+
+    use ResolvesMorphAlias;
     use SoftDeletes;
 
     protected $fillable = [

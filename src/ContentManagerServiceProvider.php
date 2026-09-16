@@ -13,6 +13,12 @@ use A2ZWeb\ContentManager\Http\Middleware\EnsureContentApiKey;
 use A2ZWeb\ContentManager\Listeners\FlushResponseCache;
 use A2ZWeb\ContentManager\Listeners\RunContentChangeHooks;
 use A2ZWeb\ContentManager\Mcp\ContentServer;
+use A2ZWeb\ContentManager\Nova\BlogPost;
+use A2ZWeb\ContentManager\Nova\Chunk;
+use A2ZWeb\ContentManager\Nova\ContentCategory;
+use A2ZWeb\ContentManager\Nova\Faq;
+use A2ZWeb\ContentManager\Nova\Page;
+use A2ZWeb\ContentManager\Nova\Tag;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -153,13 +159,15 @@ class ContentManagerServiceProvider extends ServiceProvider
             return;
         }
 
+        // Fully qualified: `use Laravel\Nova\Nova` above shadows the relative
+        // `Nova\…` prefix, which would resolve to Laravel\Nova\Nova\BlogPost.
         Nova::resources([
-            Nova\BlogPost::class,
-            Nova\ContentCategory::class,
-            Nova\Tag::class,
-            Nova\Page::class,
-            Nova\Faq::class,
-            Nova\Chunk::class,
+            BlogPost::class,
+            ContentCategory::class,
+            Tag::class,
+            Page::class,
+            Faq::class,
+            Chunk::class,
         ]);
     }
 
