@@ -1,0 +1,83 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "a2zwebltd/laravel-content-manager",
+    "description": "A portable Laravel content engine — blog posts with categories and tags, DB-backed CMS pages, FAQs and reusable content chunks, media-library images, Nova admin, and a built-in MCP server so AI agents can manage the whole archive remotely with an API key.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "blog",
+        "cms",
+        "content",
+        "mcp",
+        "ai",
+        "nova",
+        "markdown"
+    ],
+    "homepage": "https://github.com/a2zwebltd/laravel-content-manager",
+    "support": {
+        "issues": "https://github.com/a2zwebltd/laravel-content-manager/issues",
+        "source": "https://github.com/a2zwebltd/laravel-content-manager"
+    },
+    "authors": [
+        {
+            "name": "A2Z WEB",
+            "homepage": "https://a2zweb.co/"
+        },
+        {
+            "name": "Dawid Makowski",
+            "role": "Maintainer",
+            "homepage": "https://github.com/makowskid"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.45.3|^12.41.1|^13.0",
+        "laravel/mcp": "^1.0",
+        "league/commonmark": "^2.4",
+        "spatie/laravel-medialibrary": "^11.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.25",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0",
+        "spatie/laravel-feed": "^4.5"
+    },
+    "suggest": {
+        "laravel/nova": "Auto-registers Nova resources (BlogPost, ContentCategory, Tag, Page, Faq, Chunk) when present.",
+        "laravel/ai": "Enables the AI draft pipeline (content:generate-drafts and the posts.draft MCP tool).",
+        "spatie/laravel-feed": "Serves the blog as an Atom/RSS feed via A2ZWeb\\ContentManager\\Feeds\\FeedableBlogPost.",
+        "spatie/laravel-responsecache": "Public HTTP cache is flushed automatically whenever content changes."
+    },
+    "autoload": {
+        "psr-4": {
+            "A2ZWeb\\ContentManager\\": "src/",
+            "A2ZWeb\\ContentManager\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "A2ZWeb\\ContentManager\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "A2ZWeb\\ContentManager\\ContentManagerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "lint": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
