@@ -8,6 +8,11 @@ A portable content engine for Laravel: a markdown blog with categories and tags,
 
 Designed to drop into any Laravel app: every table name, model, route and view is overridable, so it fits an existing blog as readily as an empty project.
 
+> **Integrating it into an app?** [INTEGRATION.md](INTEGRATION.md) is a step-by-step guide written for an AI coding agent. Point one at it —
+> *"integrate a2zwebltd/laravel-content-manager into this app following its INTEGRATION.md"* — and it covers install, configuration, routes, views, adopting an app that already has a blog (including the morph-type backfill that silently drops every tag if it is skipped), the MCP server, and a verification checklist.
+>
+> Raw URL for an agent that needs to fetch it: `https://raw.githubusercontent.com/a2zwebltd/laravel-content-manager/main/INTEGRATION.md`
+
 ## Requirements
 
 - PHP 8.2+
@@ -108,6 +113,8 @@ Everything lives in `config/content-manager.php`, which is closure-free and safe
 - `ai` — provider, model and the topic backlog for `content:generate-drafts`.
 
 ### Adopting it in an app that already has these tables
+
+Full procedure: [INTEGRATION.md §6](INTEGRATION.md#6-case-b-only-adopting-an-app-that-already-has-this-content).
 
 The migrations are guarded with `Schema::hasTable()`, so they record themselves and change nothing where the tables already exist. Delete your own create-migrations, keep their rows in the `migrations` table, and run the morph normalisation the package ships. Verify with:
 
