@@ -6,5 +6,3 @@
 /.vscode
 .DS_Store
 
-# GitHub Actions workflow kept locally: the publishing token has no `workflow` scope.
-.github/
