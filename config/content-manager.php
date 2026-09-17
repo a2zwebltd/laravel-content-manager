@@ -205,8 +205,8 @@ return [
     | is never registered at all — a content-management endpoint should not
     | exist unless it is deliberately switched on.
     |
-    |   CONTENT_MCP_API_KEY="sk_live_xxx"
-    |   CONTENT_MCP_API_KEYS="writer:sk_live_xxx:read|write,reader:sk_live_yyy:read"
+    |   CONTENT_MCP_API_KEY="<generate-a-long-random-string>"
+    |   CONTENT_MCP_API_KEYS="writer:<key-one>:read|write,reader:<key-two>:read"
     |
     */
 
@@ -240,7 +240,7 @@ return [
             }, array_filter(array_map('trim', explode(',', (string) env('CONTENT_MCP_API_KEYS', '')))))
         ))),
 
-        'instructions' => 'Manage this application\'s published content: blog posts with their categories and tags, CMS pages, FAQ entries and reusable content chunks. Read content://guidelines before writing anything, and content://taxonomy for the category and tag slugs that already exist.',
+        'instructions' => 'Manage this application\'s published content: blog posts with their categories and tags, CMS pages, FAQ entries and reusable content chunks. Changes are live on a public website; leave published_at empty to file a draft for a human. Read content://guidelines before writing anything, and content://taxonomy for the category and tag slugs that already exist. Full reference: https://raw.githubusercontent.com/a2zwebltd/laravel-content-manager/main/MCP.md',
     ],
 
     /*
@@ -281,7 +281,8 @@ return [
     | `topic_provider` is an invokable/`all()` class-string resolved from the
     | container, so a host can back its backlog with a database instead of the
     | `topics` array. `before_call` is an invokable class-string invoked with
-    | (provider, model, topic) — BrandGEO uses it to tag AI call tracing.
+    | (provider, model, topic) — useful for tagging the outgoing call in the
+    | host's own AI cost tracing.
     |
     */
 

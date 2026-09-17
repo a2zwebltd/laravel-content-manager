@@ -12,6 +12,9 @@ Designed to drop into any Laravel app: every table name, model, route and view i
 > *"integrate a2zwebltd/laravel-content-manager into this app following its INTEGRATION.md"* — and it covers install, configuration, routes, views, adopting an app that already has a blog (including the morph-type backfill that silently drops every tag if it is skipped), the MCP server, and a verification checklist.
 >
 > Raw URL for an agent that needs to fetch it: `https://raw.githubusercontent.com/a2zwebltd/laravel-content-manager/main/INTEGRATION.md`
+>
+> **Connecting an agent to a site that already runs this package?** [MCP.md](MCP.md) is the usage reference: every tool and its arguments, the read-before-write conventions, the traps (soft-deleted slugs keep their URL, chunks render live, `force` is permanent) and what each error means.
+> Raw URL: `https://raw.githubusercontent.com/a2zwebltd/laravel-content-manager/main/MCP.md`
 
 ## Requirements
 
@@ -54,10 +57,10 @@ php artisan vendor:publish --tag=content-manager-views
 Set a key and the endpoint appears; leave it unset and the route is never registered at all.
 
 ```env
-CONTENT_MCP_API_KEY="sk_live_xxxxxxxx"
+CONTENT_MCP_API_KEY="<generate-a-long-random-string>"
 
 # or several, each with its own abilities:
-CONTENT_MCP_API_KEYS="writer:sk_live_xxx:read|write,reader:sk_live_yyy:read"
+CONTENT_MCP_API_KEYS="writer:<key-one>:read|write,reader:<key-two>:read"
 ```
 
 ```bash
@@ -69,8 +72,10 @@ Point an agent at it:
 
 ```bash
 claude mcp add --transport http my-site-content https://example.com/mcp/content \
-  --header "Authorization: Bearer sk_live_xxxxxxxx"
+  --header "Authorization: Bearer <your-key>"
 ```
+
+Full usage reference for a connected agent — arguments, workflows, conventions and error semantics: **[MCP.md](MCP.md)**.
 
 ### Tools
 

@@ -267,6 +267,10 @@ That is deliberate: a content-management endpoint should not exist unless
 someone switched it on. `content:mcp-status` will tell you which state you are
 in.
 
+Once it is live, an agent connecting to it should read
+[MCP.md](MCP.md) — the tool reference, conventions and error semantics for
+using the server.
+
 Connect a client:
 
 ```bash
