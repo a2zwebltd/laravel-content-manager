@@ -26,11 +26,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class BlogPost extends Model implements HasMedia
 {
     use FiresContentEvents;
+
     /** @use HasFactory<BlogPostFactory> */
     use HasFactory;
 
     use InteractsWithMedia;
-
     use ResolvesMorphAlias;
     use SoftDeletes;
 

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 class Page extends Model
 {
     use FiresContentEvents;
+
     /** @use HasFactory<PageFactory> */
     use HasFactory;
 
