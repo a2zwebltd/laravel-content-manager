@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use A2ZWeb\ContentManager\Events\ContentSaved;
 use A2ZWeb\ContentManager\Mcp\ContentServer;
 use A2ZWeb\ContentManager\Mcp\Tools\CreatePost;
 use A2ZWeb\ContentManager\Mcp\Tools\DeletePost;
@@ -9,11 +10,13 @@ use A2ZWeb\ContentManager\Mcp\Tools\GetPost;
 use A2ZWeb\ContentManager\Mcp\Tools\ListPosts;
 use A2ZWeb\ContentManager\Mcp\Tools\PublishPost;
 use A2ZWeb\ContentManager\Mcp\Tools\RestorePost;
+use A2ZWeb\ContentManager\Mcp\Tools\SetPostImage;
 use A2ZWeb\ContentManager\Mcp\Tools\UnpublishPost;
 use A2ZWeb\ContentManager\Mcp\Tools\UpdatePost;
 use A2ZWeb\ContentManager\Models\BlogPost;
 use A2ZWeb\ContentManager\Models\ContentCategory;
 use A2ZWeb\ContentManager\Models\Tag;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 it('lists published posts only when asked', function (): void {
@@ -105,6 +108,73 @@ it('updates only the fields it is given', function (): void {
 
     expect($post->title)->toBe('New title')
         ->and($post->intro)->toBe('Original intro');
+});
+
+it('announces a change that only touches the taxonomy', function (): void {
+    ContentCategory::factory()->create(['slug' => 'seo']);
+    $post = BlogPost::factory()->published()->create();
+
+    Event::fake([ContentSaved::class]);
+
+    ContentServer::tool(UpdatePost::class, [
+        'slug' => $post->slug,
+        'category_slugs' => ['seo'],
+    ])->assertOk();
+
+    Event::assertDispatchedTimes(ContentSaved::class, 1);
+    Event::assertDispatched(ContentSaved::class, fn (ContentSaved $e) => $e->model->is($post));
+});
+
+it('stays quiet when the taxonomy it is given is already in place', function (): void {
+    $tag = Tag::factory()->create(['slug' => 'geo']);
+    $post = BlogPost::factory()->published()->create();
+    $post->tags()->attach($tag);
+
+    Event::fake([ContentSaved::class]);
+
+    ContentServer::tool(UpdatePost::class, [
+        'slug' => $post->slug,
+        'tag_slugs' => ['geo'],
+    ])->assertOk();
+
+    Event::assertNotDispatched(ContentSaved::class);
+});
+
+it('announces a field and taxonomy change once, after the pivots are written', function (): void {
+    Tag::factory()->create(['slug' => 'geo']);
+    $post = BlogPost::factory()->published()->create();
+
+    $seen = [];
+    Event::listen(ContentSaved::class, function (ContentSaved $event) use (&$seen): void {
+        if ($event->type() === 'blog_post') {
+            $seen[] = $event->model->tags()->pluck('slug')->all();
+        }
+    });
+
+    ContentServer::tool(UpdatePost::class, [
+        'slug' => $post->slug,
+        'title' => 'Retitled',
+        'tag_slugs' => ['geo'],
+    ])->assertOk();
+
+    expect($seen)->toBe([['geo']])
+        ->and($post->refresh()->title)->toBe('Retitled');
+});
+
+it('announces a new featured image', function (): void {
+    $post = BlogPost::factory()->published()->create();
+
+    Event::fake([ContentSaved::class]);
+
+    $png = base64_encode((string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='));
+
+    ContentServer::tool(SetPostImage::class, [
+        'slug' => $post->slug,
+        'base64' => $png,
+        'filename' => 'pixel.png',
+    ])->assertOk();
+
+    Event::assertDispatchedTimes(ContentSaved::class, 1);
 });
 
 it('publishes and unpublishes a post', function (): void {

@@ -68,6 +68,9 @@ class SetPostImage extends Tool
             return Response::error('The image could not be stored: '.$e->getMessage());
         }
 
+        // A new media row leaves the post itself untouched, so announce it.
+        $this->announceChange($post);
+
         $this->recordMutation('post image set', ['slug' => $post->slug, 'collection' => $collection]);
 
         return Response::structured([

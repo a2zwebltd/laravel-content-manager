@@ -72,9 +72,14 @@ class UpdatePost extends Tool
             $changes['is_promoted'] = $validated['is_promoted'];
         }
 
-        $post->fill($changes)->save();
+        // Pivots first, save last: a column change then announces the edit
+        // once, with the new taxonomy already in place, and a taxonomy-only
+        // change is announced by syncTaxonomy() touching the post.
+        $post->fill($changes);
 
         $missing = $this->syncTaxonomy($post, $validated['category_slugs'] ?? null, $validated['tag_slugs'] ?? null);
+
+        $post->save();
 
         $this->recordMutation('post updated', ['slug' => $post->slug, 'fields' => array_keys($changes)]);
 

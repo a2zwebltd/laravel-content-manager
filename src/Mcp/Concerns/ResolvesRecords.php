@@ -60,6 +60,13 @@ trait ResolvesRecords
      * (categories must already exist — they are an editorial decision, not
      * something an agent should invent mid-draft).
      *
+     * Pivot writes never mark the model dirty, so on their own they fire no
+     * Eloquent event — and therefore no ContentSaved, no response-cache flush
+     * and no on_change hook. When a sync really changed something, the change
+     * is announced explicitly, like any other edit. A caller that
+     * still has unsaved attribute changes pending is left to announce it with
+     * its own save(), which then fires once, after the pivots are in place.
+     *
      * @param  array<int, string>|null  $categorySlugs
      * @param  array<int, string>|null  $tagSlugs
      * @return array<int, string> Slugs that could not be matched.
@@ -67,6 +74,7 @@ trait ResolvesRecords
     protected function syncTaxonomy(Model $post, ?array $categorySlugs, ?array $tagSlugs): array
     {
         $missing = [];
+        $changed = false;
 
         if ($categorySlugs !== null) {
             $categories = Models::contentCategory()::query()
@@ -75,7 +83,7 @@ trait ResolvesRecords
 
             $missing = array_values(array_diff($categorySlugs, $categories->pluck('slug')->all()));
 
-            $post->categories()->sync($categories->pluck('id')->all());
+            $changed = $this->syncChangedSomething($post->categories()->sync($categories->pluck('id')->all())) || $changed;
         }
 
         if ($tagSlugs !== null) {
@@ -90,9 +98,36 @@ trait ResolvesRecords
                 $ids[] = $tag->id;
             }
 
-            $post->tags()->sync($ids);
+            $changed = $this->syncChangedSomething($post->tags()->sync($ids)) || $changed;
+        }
+
+        if ($changed && ! $post->isDirty()) {
+            $this->announceChange($post);
         }
 
         return $missing;
+    }
+
+    /**
+     * Fire ContentSaved for a change that left the model's own columns alone,
+     * so the response cache, on_change hooks and listeners still hear of it.
+     */
+    protected function announceChange(Model $model): void
+    {
+        if (method_exists($model, 'announceContentChange')) {
+            $model->announceContentChange();
+
+            return;
+        }
+
+        $model->touch();
+    }
+
+    /** @param  array<string, array<int, mixed>>  $result  What BelongsToMany::sync() returns. */
+    private function syncChangedSomething(array $result): bool
+    {
+        return ($result['attached'] ?? []) !== []
+            || ($result['detached'] ?? []) !== []
+            || ($result['updated'] ?? []) !== [];
     }
 }

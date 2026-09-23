@@ -26,6 +26,21 @@ trait FiresContentEvents
         }
     }
 
+    /**
+     * Announce a change Eloquent cannot see — a pivot sync, a new image — the
+     * same way a save would. touch() is not enough on its own: within the
+     * same second updated_at does not change, so nothing is dirty and no
+     * updated event fires.
+     */
+    public function announceContentChange(): void
+    {
+        if ($this->usesTimestamps()) {
+            $this->touchQuietly();
+        }
+
+        self::announce(new ContentSaved($this));
+    }
+
     private static function announce(ContentSaved|ContentDeleted $event): void
     {
         if (! config('content-manager.events.enabled', true)) {
