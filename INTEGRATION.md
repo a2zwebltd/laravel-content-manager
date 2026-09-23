@@ -178,6 +178,12 @@ content type. Listen to them, or list invokable class-strings in
 'on_change' => [App\Support\RebuildSitemap::class],
 ```
 
+Events come from Eloquent model events, so they fire only for per-record
+`save()` / `create()` / `update()` / `delete()`. Query-builder `->update()`,
+`DB::table()` and raw SQL announce nothing. Pivot and media writes
+(`$post->tags()->sync()`, `addMedia…()`) don't dirty the post either, so follow
+them with `$post->announceContentChange()`. The MCP tools already do.
+
 **AI drafts** (needs `laravel/ai`). Set `ai.provider` / `ai.model`, then either
 fill `ai.topics` or point `ai.topic_provider` at a class implementing
 `A2ZWeb\ContentManager\Ai\TopicProvider`. Run `php artisan content:generate-drafts`.
@@ -324,7 +330,7 @@ Then, in a browser or with curl:
 | MCP endpoint 404s | No key configured, so the route was never registered — §7 |
 | MCP returns 401 | Key mismatch; check `Authorization: Bearer` and `content:mcp-status` |
 | Write tools refuse | That key has `read` only |
-| Edits do not show on the site | A response cache the package does not know about; hook `events.on_change` |
+| Edits do not show on the site | A query-builder or raw-SQL write, a pivot/media write without `announceContentChange()`, or a cache the package does not know about; hook `events.on_change` |
 | `View [components.layouts.app] not found` | `layout` points at a view this app does not have |
 | Table already exists on migrate | An app create-migration was left in place — §6.2 |
 | Chunk edits take an hour to appear | A cached lookup outside the package; the package's own cache is invalidated on save |

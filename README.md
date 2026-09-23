@@ -137,6 +137,20 @@ SELECT model_type, COUNT(*) FROM media GROUP BY 1;
 
 Then set `content-manager.models.blog_post` to the same class so the feed, the morph alias and Nova all agree on one model.
 
+## AI agents (Laravel Boost)
+
+The package ships [Laravel Boost](https://github.com/laravel/boost) resources: a short always-loaded guideline (`resources/boost/guidelines/core.blade.php`) with the rules that prevent silent breakage, and two on-demand skills. `content-manager-integration` covers wiring the package into an app. `content-manager-authoring` covers writing content over the `/mcp/content` server or through Eloquent. Boost 2 or newer is required.
+
+In the host app:
+
+```bash
+composer require laravel/boost --dev
+php artisan boost:install          # first time
+php artisan boost:update --discover   # already using Boost
+```
+
+Select `a2zwebltd/laravel-content-manager` when Boost lists the packages it found.
+
 ## Testing
 
 ```bash
