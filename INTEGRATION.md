@@ -182,7 +182,10 @@ Events come from Eloquent model events, so they fire only for per-record
 `save()` / `create()` / `update()` / `delete()`. Query-builder `->update()`,
 `DB::table()` and raw SQL announce nothing. Pivot and media writes
 (`$post->tags()->sync()`, `addMedia…()`) don't dirty the post either, so follow
-them with `$post->announceContentChange()`. The MCP tools already do.
+them with `$post->announceContentChange()`. The MCP tools and the Nova
+featured-image upload and delete already do. A Nova subclass that replaces the
+image field must keep that: return `fn () => $model->announceContentChange()`
+from its `store()` callback, since Nova runs a returned closure after the save.
 
 **AI drafts** (needs `laravel/ai`). Set `ai.provider` / `ai.model`, then either
 fill `ai.topics` or point `ai.topic_provider` at a class implementing

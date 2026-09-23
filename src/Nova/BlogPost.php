@@ -76,12 +76,21 @@ class BlogPost extends Resource
                     $model->addMediaFromRequest('featured_image')
                         ->toMediaCollection((string) config('content-manager.media.collection', 'main'));
 
-                    return true;
+                    // A new image leaves the post itself clean, so no updated
+                    // event fires and cached pages keep the old one. Nova runs a
+                    // returned closure after the save, once the post exists, so
+                    // announcing there is safe when creating a post as well.
+                    return fn () => $model->announceContentChange();
                 })
                 ->preview(fn ($value, $disk, $model) => $model?->getFirstMediaUrl('main', 'preview') ?: null)
                 ->thumbnail(fn ($value, $disk, $model) => $model?->getFirstMediaUrl('main', 'thumb') ?: null)
                 ->delete(function (NovaRequest $request, $model) {
                     $model->clearMediaCollection((string) config('content-manager.media.collection', 'main'));
+
+                    // Nova saves the post after this, but nothing on it changed,
+                    // so the removal would go unannounced. Only an existing post
+                    // has an image to delete, so announcing here is safe.
+                    $model->announceContentChange();
 
                     return true;
                 })
