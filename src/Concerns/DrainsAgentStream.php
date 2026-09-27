@@ -26,10 +26,18 @@ trait DrainsAgentStream
             // the bytes flowing through here are what keep the connection alive.
         }
 
+        $usage = $stream->usage ?? null;
+
         return [
             'text' => $stream->text ?? '',
-            'promptTokens' => (int) ($stream->usage->promptTokens ?? 0),
-            'completionTokens' => (int) ($stream->usage->completionTokens ?? 0),
+            // laravel/ai reports cache writes and cache reads apart from
+            // promptTokens, and OpenAI caches long prompts automatically — the
+            // editorial guidelines make every draft prompt one. promptTokens
+            // alone booked a few tokens per draft; all input is billed.
+            'promptTokens' => (int) ($usage->promptTokens ?? 0)
+                + (int) ($usage->cacheWriteInputTokens ?? 0)
+                + (int) ($usage->cacheReadInputTokens ?? 0),
+            'completionTokens' => (int) ($usage->completionTokens ?? 0),
         ];
     }
 

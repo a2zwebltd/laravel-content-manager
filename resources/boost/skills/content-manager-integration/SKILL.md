@@ -89,7 +89,7 @@ Render bodies with `$post->renderedContent()` / `$page->renderedContent()`; read
 - `Support\ContentIndex::posts(bool $withContent = false, ?int $limit = null)`, `pages(bool $withContent = false)`, `faqs(?string $group = null)` return `title` / `url` / `description` rows (FAQs: `question` / `answer`).
 - Feed (`spatie/laravel-feed`): in `config/feed.php` set `'items' => [\A2ZWeb\ContentManager\Feeds\FeedableBlogPost::class, 'getFeedItems']`, and set **both** `models.blog_post` and `morph_map.blog_post` to `FeedableBlogPost::class`.
 
-**AI hooks** (`laravel/ai`; command `content:generate-drafts {--count=2} {--slug=}`): `ai.topic_provider` is a class-string implementing `A2ZWeb\ContentManager\Ai\TopicProvider::all()` (rows `slug`, `title_idea`, `keyword?`, `angle?`), or use the `ai.topics` array. `ai.before_call` is an invokable class-string called `($provider, $model, $topic)`. Drafts are created unpublished, and `ContentDraftGenerated` carries `promptTokens` / `completionTokens`. Set `CONTENT_AI_ENABLED=false` when the app meters AI elsewhere.
+**AI hooks** (`laravel/ai`; command `content:generate-drafts {--count=2} {--slug=}`): `ai.topic_provider` is a class-string implementing `A2ZWeb\ContentManager\Ai\TopicProvider::all()` (rows `slug`, `title_idea`, `keyword?`, `angle?`), or use the `ai.topics` array. `ai.before_call` is an invokable class-string called `($provider, $model, $topic)`. Drafts are created unpublished, and `ContentDraftGenerated` carries `promptTokens` / `completionTokens`; `promptTokens` is all billed input, cached and cache-written included (since v1.1.1), so book it at the input rate. Set `CONTENT_AI_ENABLED=false` when the app meters AI elsewhere.
 
 ## Recipes
 
