@@ -27,7 +27,11 @@ class FeedableBlogPost extends BlogPost implements Feedable
         return FeedItem::create()
             ->id($url)
             ->title((string) $this->title)
-            ->summary((string) ($this->intro ?? $this->subtitle ?? ''))
+            // Escaped plain text: the summary is declared as HTML and feed
+            // stylesheets (spatie's atom.xsl among them) print it with
+            // disable-output-escaping, so markup in an intro would run on the
+            // site's own origin.
+            ->summary(e(trim(strip_tags((string) ($this->intro ?? $this->subtitle ?? '')))))
             ->updated($this->updated_at ?? $this->published_at)
             ->link($url)
             ->authorName((string) config('content-manager.feed.author', config('app.name')));

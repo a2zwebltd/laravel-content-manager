@@ -22,7 +22,7 @@
 | `unpublish-post` | `slug`/`id` | Sets `published_at` to null; row and URL stay. |
 | `delete-post` | `slug`/`id`, `force` (default false) | Soft delete keeps the slug reserved. `force: true` is permanent. |
 | `restore-post` | `slug`/`id` | Comes back with its old publication state. |
-| `set-post-image` | `slug`/`id`, `url` (http/https) or `base64`, `filename`, `collection` (main·small) | Fetched server-side; replaces the slot's image. |
+| `set-post-image` | `slug`/`id`, `url` (public http/https, ports 80/443) or `base64`, `filename` (stem only), `collection` (main·small) | JPEG, PNG, WebP or GIF only, checked by content; the extension follows the type. A URL is fetched only from a public address, without redirects. Replaces the slot's image. |
 
 A post in a response carries `id`, `slug`, `title`, `subtitle`, `intro`, `status` (published·draft·trashed), `published_at`, `is_promoted`, `url`, `categories`, `tags`, `meta_*`, `youtube_embed`, `word_count`, `reading_minutes`, `image_url`, `content`. Null fields are omitted. `create-post`/`update-post` add `unknown_categories` when a category slug didn't match.
 

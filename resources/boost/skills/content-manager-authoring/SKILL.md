@@ -56,7 +56,7 @@ Arguments, response shapes and error messages: [references/mcp-tools.md](referen
 2. read content://taxonomy            → existing categories and tags
 3. list-posts search:"<topic>"        → already covered?
 4. create-post                        → title, markdown content, intro, meta_*, category_slugs, tag_slugs; NO published_at
-5. set-post-image                     → optional, url (http/https) or base64
+5. set-post-image                     → optional, a JPEG/PNG/WebP/GIF from a public http(s) URL (ports 80/443, no redirects) or base64
 6. get-post slug:"…"                  → read back what was stored
 7. publish-post                       → only when a human asked; a future published_at schedules it
 ```

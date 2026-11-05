@@ -71,7 +71,7 @@ either `slug` or `id` — pass one.
 | `unpublish-post` | `slug` / `id` |
 | `delete-post` | `slug` / `id`, `force` (default false) |
 | `restore-post` | `slug` / `id` |
-| `set-post-image` | `slug` / `id`, `url` or `base64`, `filename`, `collection` (main·small) |
+| `set-post-image` | `slug` / `id`, `url` (public http/https address, ports 80/443, no redirects) or `base64`, `filename` (stem; the extension follows the detected type), `collection` (main·small). JPEG, PNG, WebP or GIF only. |
 
 ### Taxonomy
 

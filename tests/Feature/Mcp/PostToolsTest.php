@@ -16,7 +16,9 @@ use A2ZWeb\ContentManager\Mcp\Tools\UpdatePost;
 use A2ZWeb\ContentManager\Models\BlogPost;
 use A2ZWeb\ContentManager\Models\ContentCategory;
 use A2ZWeb\ContentManager\Models\Tag;
+use A2ZWeb\ContentManager\Support\RemoteImage;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 it('lists published posts only when asked', function (): void {
@@ -204,4 +206,51 @@ it('force-deletes when asked', function (): void {
     ContentServer::tool(DeletePost::class, ['slug' => $post->slug, 'force' => true])->assertOk();
 
     expect(BlogPost::withTrashed()->count())->toBe(0);
+});
+
+it('stores only a raster image, named from its type', function (): void {
+    $post = BlogPost::factory()->published()->create(['slug' => 'pixel-post']);
+    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+    ContentServer::tool(SetPostImage::class, ['slug' => $post->slug, 'base64' => $png, 'filename' => 'poc.html'])->assertOk();
+
+    expect($post->refresh()->getFirstMedia('main')->file_name)->toBe('poc.png');
+
+    ContentServer::tool(SetPostImage::class, [
+        'slug' => $post->slug,
+        'base64' => base64_encode('<html><script>alert(1)</script></html>'),
+        'filename' => 'poc.html',
+    ])->assertHasErrors();
+
+    expect($post->refresh()->getFirstMedia('main')->file_name)->toBe('poc.png');
+});
+
+it('refuses to fetch an image from a loopback, private or non-standard address', function (string $url, array $resolved): void {
+    $post = BlogPost::factory()->published()->create();
+    RemoteImage::resolveUsing(fn () => $resolved);
+    Http::fake();
+
+    ContentServer::tool(SetPostImage::class, ['slug' => $post->slug, 'url' => $url])->assertHasErrors();
+
+    Http::assertNothingSent();
+    RemoteImage::resolveUsing(null);
+})->with([
+    'loopback by name' => ['http://search.internal:80/_search', ['127.0.0.1']],
+    'loopback literal' => ['http://127.0.0.1/x.png', []],
+    'private range' => ['https://intranet.example/x.png', ['10.0.0.5']],
+    'one private answer among public ones' => ['https://mixed.example/x.png', ['93.184.216.34', '192.168.1.1']],
+    'elasticsearch port' => ['http://images.example:9200/x.png', ['93.184.216.34']],
+    'not http' => ['file:///etc/passwd', []],
+]);
+
+it('fetches an image from a public address without following redirects', function (): void {
+    $post = BlogPost::factory()->published()->create(['slug' => 'remote']);
+    RemoteImage::resolveUsing(fn () => ['93.184.216.34']);
+    $png = (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+    Http::fake(['images.example/*' => Http::response($png)]);
+
+    ContentServer::tool(SetPostImage::class, ['slug' => $post->slug, 'url' => 'https://images.example/cover.png'])->assertOk();
+
+    expect($post->refresh()->getFirstMedia('main')->file_name)->toBe('remote.png');
+    RemoteImage::resolveUsing(null);
 });

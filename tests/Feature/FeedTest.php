@@ -38,3 +38,11 @@ it('credits the configured author', function (): void {
 
     expect($post->toFeedItem()->authorName)->toBe('A2Z WEB');
 });
+
+it('puts an intro into the feed as escaped text, never as markup', function (): void {
+    $post = FeedableBlogPost::factory()->published()->create([
+        'intro' => 'Read <img src=x onerror="alert(1)"> this & that',
+    ]);
+
+    expect($post->toFeedItem()->summary)->toBe('Read  this &amp; that');
+});

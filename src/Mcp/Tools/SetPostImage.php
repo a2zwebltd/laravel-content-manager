@@ -6,7 +6,10 @@ namespace A2ZWeb\ContentManager\Mcp\Tools;
 
 use A2ZWeb\ContentManager\Mcp\Concerns\AuthorizesAbilities;
 use A2ZWeb\ContentManager\Mcp\Concerns\ResolvesRecords;
+use A2ZWeb\ContentManager\Support\RemoteImage;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -16,7 +19,7 @@ use Laravel\Mcp\Server\Tool;
 use Throwable;
 
 #[Name('set-post-image')]
-#[Description("Set a post's featured image from a public URL or base64 data. Replaces whatever image the collection holds.")]
+#[Description("Set a post's featured image (JPEG, PNG, WebP or GIF) from a public URL or base64 data. Replaces whatever image the collection holds.")]
 class SetPostImage extends Tool
 {
     use AuthorizesAbilities;
@@ -46,26 +49,28 @@ class SetPostImage extends Tool
         }
 
         $collection = $validated['collection'] ?? (string) config('content-manager.media.collection', 'main');
-        $filename = $validated['filename'] ?? $post->slug.'.jpg';
 
         try {
             if (! empty($validated['url'])) {
-                if (! preg_match('#^https?://#i', $validated['url'])) {
-                    return Response::error('The image URL must start with http:// or https://.');
-                }
-
-                $post->addMediaFromUrl($validated['url'])
-                    ->usingFileName($filename)
-                    ->toMediaCollection($collection);
+                $image = RemoteImage::fetch($validated['url']);
             } elseif (! empty($validated['base64'])) {
-                $post->addMediaFromBase64($validated['base64'])
-                    ->usingFileName($filename)
-                    ->toMediaCollection($collection);
+                $image = RemoteImage::decode($validated['base64']);
             } else {
                 return Response::error('Pass either a url or base64 image data.');
             }
-        } catch (Throwable $e) {
-            return Response::error('The image could not be stored: '.$e->getMessage());
+        } catch (InvalidArgumentException $e) {
+            return Response::error($e->getMessage());
+        }
+
+        // The name comes from the caller, the extension from the bytes.
+        $stem = Str::slug(pathinfo((string) ($validated['filename'] ?? $post->slug), PATHINFO_FILENAME)) ?: 'image';
+
+        try {
+            $post->addMediaFromString($image['bytes'])
+                ->usingFileName($stem.'.'.$image['extension'])
+                ->toMediaCollection($collection);
+        } catch (Throwable) {
+            return Response::error('The image could not be stored.');
         }
 
         // A new media row leaves the post itself untouched, so announce it.
@@ -88,7 +93,7 @@ class SetPostImage extends Tool
             'id' => $schema->integer()->description('Id of the post.'),
             'url' => $schema->string()->description('Public http(s) URL of the image to fetch.'),
             'base64' => $schema->string()->description('Base64-encoded image data, as an alternative to url.'),
-            'filename' => $schema->string()->description('Stored file name. Defaults to the post slug.'),
+            'filename' => $schema->string()->description('Stored file name without extension; the extension follows the image type. Defaults to the post slug.'),
             'collection' => $schema->string()->enum(['main', 'small'])->description('Which image slot to fill.')->default('main'),
         ];
     }
